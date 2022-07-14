@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel,EmailStr # used to define standard schema of data packets that comes in order to match with db
+from pydantic import BaseModel,EmailStr, conint # used to define standard schema of data packets that comes in order to match with db
 
 class Post_structure(BaseModel):
     title: str
@@ -49,4 +49,12 @@ class Token_Data(BaseModel):
 class Token(BaseModel):
     access_token:str
     token_type:str
+    total_posts_owned:int
 
+class Vote(BaseModel):
+    post_id:int
+    dir:conint(le=1,ge=0)
+
+class ResposnseWithVotes(BaseModel):
+    Post:Response_Schema
+    votes:int

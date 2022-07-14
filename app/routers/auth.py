@@ -1,3 +1,4 @@
+from operator import mod
 from fastapi import status,HTTPException,Depends,APIRouter
 from schemas import Token
 from oauth2 import create_access_token
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import User_Login_Schema
 from utills import verify_password
-
+from sqlalchemy import func
 #pip install "python-jose[cryptography]" for jwt web tokens
 
 router=APIRouter()
@@ -23,7 +24,11 @@ def signin(login_details:OAuth2PasswordRequestForm=Depends(),db:Session = Depend
     if not verification:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="incorrect password,try again")
     access_token = create_access_token(data={"user_name":login_details.username})#to sign access token with intial credentials as username
-    return {"access_token":access_token,"token_type":"bearer"}
+    user_posts=db.query(models.User,func.count(models.Post.owner_id).label("total_posts")).join(models.Post,models.User.id == models.Post.owner_id,isouter=True).filter(models.User.id==real_user.id).group_by(models.User.id).first()
+    print(user_posts.total_posts)
+    return {"access_token":access_token,"token_type":"bearer","total_posts_owned":user_posts.total_posts}
+
+     # select users.*,count(new_posts.owner_id) as no_of_posts from users left join new_posts on users.id = new_posts.owner_id where users.id=1 group by users.id order by users.id;
     
 
 
